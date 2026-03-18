@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seattle Power Outage Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="map"></div>
+
+  <div id="sidebar">
+    <header id="sidebar-head">
+      <div id="title-block">
+        <h1>⚡ Seattle Power Outages</h1>
+        <p>Historical outage data per service location</p>
+      </div>
+      <nav id="tabs">
+        <button class="tab active" data-tab="stats">Location</button>
+        <button class="tab"        data-tab="calc" >Calculator</button>
+      </nav>
+    </header>
+
+    <!-- ── Location stats panel ── -->
+    <section id="tab-stats" class="panel active">
+      <div id="no-selection">
+        <p>Click any dot on the map to see outage history for that service location.</p>
+        <p class="hint">🔍 Zoom in for more detail — some locations are hidden at low zoom levels.</p>
+      </div>
+      <div id="stats-content" hidden>
+        <table class="stats-table" aria-label="Outage statistics for selected location">
+          <tbody>
+            <tr><th scope="row">Location ID</th> <td id="s-id"></td></tr>
+            <tr><th scope="row">Data period</th> <td id="s-years"></td></tr>
+            <tr class="highlight">
+              <th scope="row">Total outages</th><td id="s-count"></td>
+            </tr>
+            <tr><th scope="row">Avg duration</th><td id="s-avg"></td></tr>
+            <tr><th scope="row">Median</th>      <td id="s-med"></td></tr>
+            <tr><th scope="row">90th pct</th>   <td id="s-p90"></td></tr>
+            <tr><th scope="row">Longest</th>    <td id="s-max"></td></tr>
+            <tr><th scope="row">Top cause</th>  <td id="s-cause"></td></tr>
+          </tbody>
+        </table>
+        <button id="goto-calc">Calculate backup power needs →</button>
+      </div>
+    </section>
+
+    <!-- ── Backup power calculator panel ── -->
+    <section id="tab-calc" class="panel">
+      <div class="calc-block">
+        <h3>Your Home</h3>
+        <label for="c-power">
+          Power draw (essentials) <span class="unit">kW</span>
+        </label>
+        <input type="number" id="c-power" value="1.5" min="0.1" max="25" step="0.1"
+               aria-label="Average power draw in kilowatts" />
+        <small>Fridge + lights + phones ≈ 1–2 kW</small>
+
+        <label for="c-food" class="mt">
+          Perishables at risk <span class="unit">$</span>
+        </label>
+        <input type="number" id="c-food" value="400" min="0" step="50"
+               aria-label="Value of food at risk in dollars" />
+      </div>
+
+      <div class="calc-block">
+        <h3>Work From Home</h3>
+        <label for="c-wfh">WFH days per week</label>
+        <input type="number" id="c-wfh" value="0" min="0" max="5" step="1"
+               aria-label="Work from home days per week" />
+
+        <label for="c-rate" class="mt">
+          Lost income per outage hour <span class="unit">$/hr</span>
+        </label>
+        <input type="number" id="c-rate" value="50" min="0" step="5"
+               aria-label="Lost income per hour in dollars" />
+      </div>
+
+      <div class="calc-block">
+        <h3>Your Outage History</h3>
+        <label for="c-freq">Outages per year</label>
+        <input type="number" id="c-freq" value="1.0" min="0" step="0.1"
+               aria-label="Number of outages per year" />
+        <small id="c-source">Click a map location to auto-fill from data</small>
+
+        <label for="c-dur" class="mt">
+          Average outage duration <span class="unit">hrs</span>
+        </label>
+        <input type="number" id="c-dur" value="4.0" min="0" step="0.5"
+               aria-label="Average outage duration in hours" />
+      </div>
+
+      <div id="calc-out" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <!-- Color + size legend -->
+  <div id="legend" aria-label="Map legend">
+    <div class="legend-title">Outages (all-time)</div>
+    <div class="legend-row">
+      <span class="swatch sm" style="background:#440154" aria-hidden="true"></span><span>1</span>
+      <span class="swatch"    style="background:#2c728e" aria-hidden="true"></span><span>2–4</span>
+      <span class="swatch"    style="background:#20a387" aria-hidden="true"></span><span>5–9</span>
+      <span class="swatch lg" style="background:#fde725" aria-hidden="true"></span><span>10+</span>
+    </div>
+    <div class="legend-note">Color + size encode outage count</div>
+  </div>
+
+  <script src="https://unpkg.com/pmtiles@3/dist/pmtiles.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

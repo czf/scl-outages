@@ -1,0 +1,10 @@
+# Visual Studio / IDE
+.vs/
+*.suo
+*.user
+*.userosscache
+
+# Output / temp files
+output/
+*.geojson
+*.pmtiles
