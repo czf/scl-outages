@@ -1,0 +1,2 @@
+# Treat PMTiles as binary — prevents git CRLF conversion corrupting the file
+*.pmtiles binary
