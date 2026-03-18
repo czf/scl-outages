@@ -1,6 +1,6 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
-// Update this tag/filename after creating a GitHub release with the PMTiles file.
-const PMTILES_URL = 'https://github.com/czf/scl-outages/releases/download/v2024/outages.pmtiles';
+// Resolved relative to the page URL — works in local dev and on GitHub Pages.
+const PMTILES_URL = new URL('outages.pmtiles', location.href).href;
 const LAYER       = 'outages';
 const CENTER      = [-122.335, 47.610];
 const ZOOM        = 11;
@@ -43,11 +43,13 @@ map.on('load', () => {
     source: 'outages',
     'source-layer': LAYER,
     paint: {
-      // Size varies with both zoom and outage count (secondary cue for color blindness).
+      // Composite expression: zoom drives interpolation, data drives each stop's output.
+      // zoom must be the direct input to the top-level interpolate.
       'circle-radius': [
-        '*',
-        ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 3.5, 16, 7],
-        ['step', ['get', 'outages'], 1.0, 5, 1.3, 10, 1.7],
+        'interpolate', ['linear'], ['zoom'],
+        8,  ['step', ['get', 'outages'], 1.5, 5, 2.0, 10, 2.5],
+        12, ['step', ['get', 'outages'], 3.5, 5, 4.5, 10, 6.0],
+        16, ['step', ['get', 'outages'], 7.0, 5, 9.0, 10, 12.0],
       ],
       'circle-color': OUTAGE_COLOR,
       'circle-opacity': 0.85,

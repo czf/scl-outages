@@ -8,3 +8,5 @@
 output/
 *.geojson
 *.pmtiles
+# ...except the published tile file served via GitHub Pages
+!docs/*.pmtiles
