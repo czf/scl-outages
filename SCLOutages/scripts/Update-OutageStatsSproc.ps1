@@ -81,7 +81,7 @@ Write-Host "Table list changed - regenerating stored procedure..." -ForegroundCo
 $unionParts = $tableNames | ForEach-Object {
   $tbl = Escape-SqlIdentifier $_
   "    SELECT EVENT_IDX, SERV_LOC_ID, MIN_EVENT_BEGIN, MAX_RESTORE_TIME," +
-  " MIN_CAUSE, MAX_POINT_X_AS_WGS84_LONGITUDE, MAX_POINT_Y_AS_WGS84_LATITUDE" +
+  " MIN_PRIMARY_CAUSE_OM AS MIN_CAUSE, MAX_POINT_X_AS_WGS84_LONGITUDE, MAX_POINT_Y_AS_WGS84_LATITUDE" +
   " FROM [$schemaSafe].[$tbl]"
 }
 $unionSql = $unionParts -join "`n    UNION ALL`n"
