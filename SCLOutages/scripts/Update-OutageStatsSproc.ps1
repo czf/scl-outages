@@ -110,6 +110,14 @@ $unionSql
     WHERE MAX_POINT_X_AS_WGS84_LONGITUDE IS NOT NULL
       AND MAX_RESTORE_TIME IS NOT NULL
       AND MIN_EVENT_BEGIN  IS NOT NULL
+      -- Exclude unreliable durations (86-81% are "Ok on Arrival" events where dispatch
+      -- close time is used as MAX_RESTORE_TIME, producing nonsensical values).
+      -- Negative (31,557): dispatch closed before event begin (cross-year error).
+      -- Zero (76,366): begin = restore to the minute.
+      -- >7 days (271,363): dispatch left open for months; not actual customer outage duration.
+      AND DATEDIFF(minute, MIN_EVENT_BEGIN, MAX_RESTORE_TIME) > 0
+      AND DATEDIFF(minute, MIN_EVENT_BEGIN, MAX_RESTORE_TIME) <= 10080
+      AND ISNULL(MIN_CAUSE, '') NOT IN ('Ok on Arrival - SCL OK', 'OK on arrival-SCL OK')
   ),
   Percentiles AS (
     SELECT DISTINCT
