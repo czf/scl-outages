@@ -36,6 +36,12 @@
             <tr class="highlight">
               <th scope="row">Total outages</th><td id="s-count"></td>
             </tr>
+            <tr class="highlight">
+              <th scope="row">Total hrs lost</th><td id="s-total"></td>
+            </tr>
+            <tr class="highlight">
+              <th scope="row">Hrs lost/year</th><td id="s-annual"></td>
+            </tr>
             <tr><th scope="row">Avg duration</th><td id="s-avg"></td></tr>
             <tr><th scope="row">Median</th>      <td id="s-med"></td></tr>
             <tr><th scope="row">90th pct</th>   <td id="s-p90"></td></tr>
@@ -98,14 +104,14 @@
 
   <!-- Color + size legend -->
   <div id="legend" aria-label="Map legend">
-    <div class="legend-title">Outages (all-time)</div>
+    <div class="legend-title">Hrs lost/year (impact)</div>
     <div class="legend-row">
-      <span class="swatch sm" style="background:#440154" aria-hidden="true"></span><span>1</span>
-      <span class="swatch"    style="background:#2c728e" aria-hidden="true"></span><span>2–4</span>
-      <span class="swatch"    style="background:#20a387" aria-hidden="true"></span><span>5–9</span>
-      <span class="swatch lg" style="background:#fde725" aria-hidden="true"></span><span>10+</span>
+      <span class="swatch sm" style="background:#440154" aria-hidden="true"></span><span>&lt;1</span>
+      <span class="swatch"    style="background:#2c728e" aria-hidden="true"></span><span>1–4</span>
+      <span class="swatch"    style="background:#20a387" aria-hidden="true"></span><span>4–12</span>
+      <span class="swatch lg" style="background:#fde725" aria-hidden="true"></span><span>12+</span>
     </div>
-    <div class="legend-note">Color + size encode outage count</div>
+    <div class="legend-note">Color = hrs/yr lost · Size = outage count</div>
   </div>
 
   <script src="https://unpkg.com/pmtiles@3/dist/pmtiles.js"></script>

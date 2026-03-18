@@ -6,13 +6,16 @@ const CENTER      = [-122.335, 47.610];
 const ZOOM        = 11;
 
 // Viridis-based color scale: colorblind-safe, perceptually uniform.
-// Steps match 1 / 2–4 / 5–9 / 10+ outages.
-const OUTAGE_COLOR = [
-  'step', ['get', 'outages'],
-  '#440154',        // 1     dark purple
-  2,  '#2c728e',    // 2–4   blue
-  5,  '#20a387',    // 5–9   teal
-  10, '#fde725',    // 10+   yellow
+// Color encodes annualized hours lost (total_hrs / years) — impact, not just frequency.
+// Breakpoints: <1 / 1–4 / 4–12 / 12+ hrs/year
+const IMPACT_COLOR = [
+  'step',
+  // annualized = total_hrs / max(yr_to - yr_from + 1, 1)
+  ['/', ['get', 'total_hrs'], ['+', ['-', ['get', 'yr_to'], ['get', 'yr_from']], 1]],
+  '#440154',         // <1 hr/yr   dark purple
+  1,  '#2c728e',     // 1–4 hrs/yr blue
+  4,  '#20a387',     // 4–12       teal
+  12, '#fde725',     // 12+ hrs/yr yellow
 ];
 
 // ─── PMTiles protocol ─────────────────────────────────────────────────────────
@@ -51,7 +54,7 @@ map.on('load', () => {
         12, ['step', ['get', 'outages'], 3.5, 5, 4.5, 10, 6.0],
         16, ['step', ['get', 'outages'], 7.0, 5, 9.0, 10, 12.0],
       ],
-      'circle-color': OUTAGE_COLOR,
+      'circle-color': IMPACT_COLOR,
       'circle-opacity': 0.85,
       'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 8, 0.3, 14, 0.8],
       'circle-stroke-color': 'rgba(0,0,0,0.30)',
@@ -75,6 +78,10 @@ function onDotClick(e) {
   document.getElementById('s-years').textContent =
     p.yr_from === p.yr_to ? String(p.yr_from) : `${p.yr_from}–${p.yr_to}`;
   document.getElementById('s-count').textContent = p.outages;
+  const years = Math.max(1, p.yr_to - p.yr_from + 1);
+  const annualHrs = (p.total_hrs / years).toFixed(1);
+  document.getElementById('s-total').textContent  = fmtHrs(p.total_hrs);
+  document.getElementById('s-annual').textContent = `${annualHrs} hrs/yr`;
   document.getElementById('s-avg').textContent   = fmtHrs(p.avg_hrs);
   document.getElementById('s-med').textContent   = fmtHrs(p.med_hrs);
   document.getElementById('s-p90').textContent   = fmtHrs(p.p90_hrs);
@@ -84,7 +91,6 @@ function onDotClick(e) {
   switchTab('stats');
 
   // Auto-fill calculator from location history.
-  const years = Math.max(1, p.yr_to - p.yr_from + 1);
   document.getElementById('c-freq').value  = (p.outages / years).toFixed(2);
   document.getElementById('c-dur').value   = parseFloat(p.avg_hrs || 4).toFixed(1);
   document.getElementById('c-source').textContent =

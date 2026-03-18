@@ -80,8 +80,9 @@ while ($reader.Read()) {
     '{"type":"Feature","id":' + $id +
     ',"geometry":{"type":"Point","coordinates":[' + $lon + ',' + $lat + ']}' +
     ',"properties":{' +
-      '"outages":'  + $reader["outage_count"] + ',' +
-      '"avg_hrs":'  + $reader["avg_dur_hrs"]  + ',' +
+      '"outages":'    + $reader["outage_count"] + ',' +
+      '"total_hrs":'  + $reader["total_hrs"]    + ',' +
+      '"avg_hrs":'    + $reader["avg_dur_hrs"]  + ',' +
       '"med_hrs":'  + $reader["med_dur_hrs"]  + ',' +
       '"p90_hrs":'  + $reader["p90_dur_hrs"]  + ',' +
       '"max_hrs":'  + $reader["max_dur_hrs"]  + ',' +
