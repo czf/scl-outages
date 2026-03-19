@@ -56,32 +56,45 @@
     <!-- ── Backup power calculator panel ── -->
     <section id="tab-calc" class="panel">
       <div class="calc-block">
-        <h3>Your Home</h3>
+        <label for="c-context">Context</label>
+        <select id="c-context" aria-label="Select context type">
+          <option value="home">🏠 Home</option>
+          <option value="restaurant">🍽️ Restaurant / Food Service</option>
+          <option value="grocery">🛒 Grocery / Retail</option>
+          <option value="custom">⚙️ Custom</option>
+        </select>
+      </div>
+
+      <div class="calc-block">
+        <h3 id="c-block1-title">Your Location</h3>
         <label for="c-power">
           Power draw (essentials) <span class="unit">kW</span>
         </label>
-        <input type="number" id="c-power" value="1.5" min="0.1" max="25" step="0.1"
+        <input type="number" id="c-power" value="1.5" min="0.1" max="500" step="0.1"
                aria-label="Average power draw in kilowatts" />
-        <small>Fridge + lights + phones ≈ 1–2 kW</small>
+        <small id="c-power-hint">Fridge + lights + phones ≈ 1–2 kW</small>
 
         <label for="c-food" class="mt">
           Perishables at risk <span class="unit">$</span>
         </label>
         <input type="number" id="c-food" value="400" min="0" step="50"
-               aria-label="Value of food at risk in dollars" />
+               aria-label="Value of perishables at risk in dollars" />
+        <small id="c-food-hint">Typical home fridge/freezer contents</small>
       </div>
 
       <div class="calc-block">
-        <h3>Work From Home</h3>
-        <label for="c-wfh">WFH days per week</label>
-        <input type="number" id="c-wfh" value="0" min="0" max="5" step="1"
-               aria-label="Work from home days per week" />
+        <h3 id="c-block2-title">Revenue / Income at Risk</h3>
+        <label for="c-wfh" id="c-wfh-label">Days per week at risk</label>
+        <input type="number" id="c-wfh" value="0" min="0" max="7" step="1"
+               aria-label="Days per week income or revenue is at risk" />
+        <small id="c-wfh-hint">Enter WFH days if outages affect remote work</small>
 
-        <label for="c-rate" class="mt">
-          Lost income per outage hour <span class="unit">$/hr</span>
+        <label for="c-rate" class="mt" id="c-rate-label">
+          Income / revenue lost per hour <span class="unit">$/hr</span>
         </label>
         <input type="number" id="c-rate" value="50" min="0" step="5"
-               aria-label="Lost income per hour in dollars" />
+               aria-label="Income or revenue lost per outage hour in dollars" />
+        <small id="c-rate-hint"></small>
       </div>
 
       <div class="calc-block">

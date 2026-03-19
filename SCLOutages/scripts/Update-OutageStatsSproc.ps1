@@ -97,6 +97,33 @@ BEGIN
   WITH AllOutages AS (
 $unionSql
   ),
+  -- For events that have a mix of valid and negative restore times (e.g. OMS placeholder
+  -- timestamps rounded to the minute, landing just before a sub-second event start),
+  -- substitute the max valid restore time from the same event so those locations are
+  -- not silently dropped. Events where EVERY row is negative have no valid substitute
+  -- and are left as-is (they will be filtered in WithDuration).
+  EventMaxValidRestore AS (
+    SELECT EVENT_IDX, MAX(MAX_RESTORE_TIME) AS valid_max_restore
+    FROM AllOutages
+    WHERE MAX_RESTORE_TIME > MIN_EVENT_BEGIN
+    GROUP BY EVENT_IDX
+  ),
+  CorrectedOutages AS (
+    SELECT
+      a.EVENT_IDX,
+      a.SERV_LOC_ID,
+      a.MAX_POINT_X_AS_WGS84_LONGITUDE,
+      a.MAX_POINT_Y_AS_WGS84_LATITUDE,
+      a.MIN_CAUSE,
+      a.MIN_EVENT_BEGIN,
+      CASE
+        WHEN a.MAX_RESTORE_TIME > a.MIN_EVENT_BEGIN THEN a.MAX_RESTORE_TIME
+        WHEN v.valid_max_restore IS NOT NULL        THEN v.valid_max_restore
+        ELSE a.MAX_RESTORE_TIME
+      END AS MAX_RESTORE_TIME
+    FROM AllOutages a
+    LEFT JOIN EventMaxValidRestore v ON v.EVENT_IDX = a.EVENT_IDX
+  ),
   WithDuration AS (
     SELECT
       SERV_LOC_ID,
@@ -106,14 +133,13 @@ $unionSql
       MIN_CAUSE,
       MIN_EVENT_BEGIN,
       DATEDIFF(minute, MIN_EVENT_BEGIN, MAX_RESTORE_TIME) AS duration_mins
-    FROM AllOutages
+    FROM CorrectedOutages
     WHERE MAX_POINT_X_AS_WGS84_LONGITUDE IS NOT NULL
       AND MAX_RESTORE_TIME IS NOT NULL
       AND MIN_EVENT_BEGIN  IS NOT NULL
-      -- Exclude unreliable durations (86-81% are "Ok on Arrival" events where dispatch
-      -- close time is used as MAX_RESTORE_TIME, producing nonsensical values).
-      -- Negative (31,557): dispatch closed before event begin (cross-year error).
-      -- Zero (76,366): begin = restore to the minute.
+      -- Exclude unreliable durations.
+      -- Negative: OMS placeholder with no valid substitute in the event.
+      -- Zero: begin = restore to the minute.
       -- >7 days (271,363): dispatch left open for months; not actual customer outage duration.
       AND DATEDIFF(minute, MIN_EVENT_BEGIN, MAX_RESTORE_TIME) > 0
       AND DATEDIFF(minute, MIN_EVENT_BEGIN, MAX_RESTORE_TIME) <= 10080

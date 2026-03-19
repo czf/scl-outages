@@ -112,6 +112,95 @@ document.querySelectorAll('.tab').forEach(b =>
 
 document.getElementById('goto-calc').addEventListener('click', () => switchTab('calc'));
 
+// ─── Calculator context presets ───────────────────────────────────────────────
+const CONTEXTS = {
+  home: {
+    block1Title:  'Your Home',
+    block2Title:  'Work From Home',
+    power:        1.5,
+    food:         400,
+    wfh:          0,
+    rate:         50,
+    powerHint:    'Fridge + lights + phones ≈ 1–2 kW',
+    foodHint:     'Typical home fridge/freezer contents',
+    wfhLabel:     'WFH days per week',
+    wfhHint:      'Enter WFH days if outages affect remote work',
+    rateLabel:    'Lost income per outage hour',
+    rateHint:     '',
+    daysPerWeek:  5,   // only weekdays count for WFH
+  },
+  restaurant: {
+    block1Title:  'Your Restaurant',
+    block2Title:  'Revenue at Risk',
+    power:        15,
+    food:         3000,
+    wfh:          6,
+    rate:         500,
+    powerHint:    'Commercial kitchen + refrigeration ≈ 10–25 kW',
+    foodHint:     'Commercial perishables — can exceed $5,000+',
+    wfhLabel:     'Operating days per week',
+    wfhHint:      'Days per week the restaurant is open',
+    rateLabel:    'Revenue lost per operating hour',
+    rateHint:     'Average hourly revenue — varies widely by size',
+    daysPerWeek:  7,
+  },
+  grocery: {
+    block1Title:  'Your Store',
+    block2Title:  'Revenue at Risk',
+    power:        60,
+    food:         20000,
+    wfh:          7,
+    rate:         1500,
+    powerHint:    'Refrigeration cases dominate — 50–150+ kW typical',
+    foodHint:     'Refrigerated/frozen inventory at risk',
+    wfhLabel:     'Operating days per week',
+    wfhHint:      'Days per week the store is open',
+    rateLabel:    'Revenue lost per operating hour',
+    rateHint:     'Average hourly revenue — varies widely by size',
+    daysPerWeek:  7,
+  },
+  custom: {
+    block1Title:  'Your Location',
+    block2Title:  'Revenue / Income at Risk',
+    power:        null,
+    food:         null,
+    wfh:          null,
+    rate:         null,
+    powerHint:    '',
+    foodHint:     '',
+    wfhLabel:     'Days per week at risk',
+    wfhHint:      '',
+    rateLabel:    'Income / revenue lost per hour',
+    rateHint:     '',
+    daysPerWeek:  7,
+  },
+};
+
+let currentDaysPerWeek = 5;
+
+function applyContext(key) {
+  const ctx = CONTEXTS[key];
+  currentDaysPerWeek = ctx.daysPerWeek;
+  document.getElementById('c-block1-title').textContent = ctx.block1Title;
+  document.getElementById('c-block2-title').textContent = ctx.block2Title;
+  document.getElementById('c-power-hint').textContent   = ctx.powerHint;
+  document.getElementById('c-food-hint').textContent    = ctx.foodHint;
+  document.getElementById('c-wfh-label').textContent    = ctx.wfhLabel;
+  document.getElementById('c-wfh-hint').textContent     = ctx.wfhHint;
+  document.getElementById('c-rate-label').firstChild.textContent = ctx.rateLabel + ' ';
+  document.getElementById('c-rate-hint').textContent    = ctx.rateHint;
+  // Only overwrite inputs if not custom (custom keeps whatever the user set)
+  if (key !== 'custom') {
+    document.getElementById('c-power').value = ctx.power;
+    document.getElementById('c-food').value  = ctx.food;
+    document.getElementById('c-wfh').value   = ctx.wfh;
+    document.getElementById('c-rate').value  = ctx.rate;
+  }
+  updateCalc();
+}
+
+document.getElementById('c-context').addEventListener('change', e => applyContext(e.target.value));
+
 // ─── Calculator ───────────────────────────────────────────────────────────────
 const BATTERIES = [
   { name: 'Tesla Powerwall 2',      kwh: 13.5,  cost: 10000 },
@@ -131,7 +220,7 @@ function updateCalc() {
   const dur    = +document.getElementById('c-dur').value   || 4;
 
   const annualHrs  = freq * dur;
-  const wfhFrac    = wfh / 5;
+  const wfhFrac    = currentDaysPerWeek > 0 ? wfh / currentDaysPerWeek : 0;
   // Food loss scales linearly up to 4 hrs, then caps (threshold for fridge safety).
   const foodLoss   = freq * food * Math.min(1, dur / 4);
   const workLoss   = annualHrs * rate * wfhFrac;

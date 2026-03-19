@@ -113,7 +113,8 @@ html, body {
 .calc-block label:first-of-type { margin-top: 0; }
 .calc-block .mt    { margin-top: 10px; }
 .calc-block .unit  { float: right; font-weight: 700; color: #1a237e; }
-.calc-block input {
+.calc-block input,
+.calc-block select {
   display: block;
   width: 100%;
   margin-top: 4px;
@@ -122,6 +123,7 @@ html, body {
   border-radius: 5px;
   font-size: 13px;
   color: #222;
+  background: #fff;
 }
 .calc-block input:focus { outline: none; border-color: #1a237e; box-shadow: 0 0 0 2px #c5cae9; }
 .calc-block small  { font-size: 11px; color: #888; margin-top: 3px; }
