@@ -180,6 +180,7 @@ let currentDaysPerWeek = 5;
 
 function applyContext(key) {
   const ctx = CONTEXTS[key];
+  currentContext    = key;
   currentDaysPerWeek = ctx.daysPerWeek;
   document.getElementById('c-block1-title').textContent = ctx.block1Title;
   document.getElementById('c-block2-title').textContent = ctx.block2Title;
@@ -202,14 +203,37 @@ function applyContext(key) {
 document.getElementById('c-context').addEventListener('change', e => applyContext(e.target.value));
 
 // ─── Calculator ───────────────────────────────────────────────────────────────
-const BATTERIES = [
-  { name: 'Tesla Powerwall 2',      kwh: 13.5,  cost: 10000 },
-  { name: 'Tesla Powerwall 3',      kwh: 13.5,  cost: 13000 },
-  { name: 'Enphase IQ Battery 10T', kwh: 10.08, cost: 12000 },
-  { name: 'Franklin aPower 15H',    kwh: 15.0,  cost: 10500 },
-  { name: 'Standby generator',      kwh: null,  cost:  8000, fuelPerHr: 1.00 },
-  { name: 'Portable generator',     kwh: null,  cost:  1200, fuelPerHr: 1.50 },
-];
+const BACKUP_OPTIONS = {
+  home: [
+    { name: 'Tesla Powerwall 2',      kwh: 13.5,  cost: 10000 },
+    { name: 'Tesla Powerwall 3',      kwh: 13.5,  cost: 13000 },
+    { name: 'Enphase IQ Battery 10T', kwh: 10.08, cost: 12000 },
+    { name: 'Franklin aPower 15H',    kwh: 15.0,  cost: 10500 },
+    { name: 'Standby generator',      kwh: null,  cost:  8000, fuelPerHr: 1.00 },
+    { name: 'Portable generator',     kwh: null,  cost:  1200, fuelPerHr: 1.50 },
+  ],
+  restaurant: [
+    { name: 'Commercial standby generator (20–45 kW)', kwh: null, cost: 20000, fuelPerHr: 3.00 },
+    { name: 'Large standby generator (60–100 kW)',     kwh: null, cost: 40000, fuelPerHr: 6.00 },
+    { name: 'Commercial battery (50 kWh)',             kwh: 50,   cost: 50000 },
+    { name: 'Commercial battery (100 kWh)',            kwh: 100,  cost: 90000 },
+  ],
+  grocery: [
+    { name: 'Large standby generator (100–200 kW)',    kwh: null, cost:  80000, fuelPerHr: 12.00 },
+    { name: 'Large standby generator (250–500 kW)',    kwh: null, cost: 150000, fuelPerHr: 25.00 },
+    { name: 'Commercial battery (250 kWh)',            kwh: 250,  cost: 200000 },
+    { name: 'Commercial battery (500 kWh)',            kwh: 500,  cost: 380000 },
+  ],
+  custom: [
+    { name: 'Tesla Powerwall 2',      kwh: 13.5,  cost: 10000 },
+    { name: 'Tesla Powerwall 3',      kwh: 13.5,  cost: 13000 },
+    { name: 'Standby generator',      kwh: null,  cost:  8000, fuelPerHr: 1.00 },
+    { name: 'Commercial standby generator (20–45 kW)', kwh: null, cost: 20000, fuelPerHr: 3.00 },
+    { name: 'Commercial battery (100 kWh)',            kwh: 100,  cost: 90000 },
+  ],
+};
+
+let currentContext = 'home';
 
 function updateCalc() {
   const power  = +document.getElementById('c-power').value || 1.5;
@@ -227,6 +251,8 @@ function updateCalc() {
   const annualCost = foodLoss + workLoss;
   const neededKwh  = power * Math.min(dur, 24);
 
+  const options = BACKUP_OPTIONS[currentContext] || BACKUP_OPTIONS.home;
+
   let html = `
     <div class="calc-summary">
       <div class="c-row"><span>Expected hours off/year</span><b>${annualHrs.toFixed(1)} hrs</b></div>
@@ -237,7 +263,7 @@ function updateCalc() {
       <thead><tr><th>Option</th><th>Installed</th><th>Payback</th></tr></thead>
       <tbody>`;
 
-  for (const b of BATTERIES) {
+  for (const b of options) {
     const annualFuel   = b.fuelPerHr != null ? annualHrs * b.fuelPerHr : 0;
     const annualSaving = annualCost - annualFuel;
     const payback      = annualSaving > 0 ? `${(b.cost / annualSaving).toFixed(1)} yrs` : '—';
