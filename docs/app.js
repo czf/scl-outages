@@ -184,8 +184,6 @@ const CONTEXTS = {
   },
 };
 
-let currentDaysPerWeek = 5;
-
 function applyContext(key) {
   const ctx = CONTEXTS[key];
   currentContext      = key;
