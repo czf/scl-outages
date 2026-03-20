@@ -17,13 +17,14 @@
         <p>Historical outage data per service location</p>
       </div>
       <nav id="tabs">
-        <button class="tab active" data-tab="stats">Location</button>
+        <button class="tab"        data-tab="stats">Location</button>
         <button class="tab"        data-tab="calc" >Calculator</button>
+        <button class="tab active" data-tab="about">About</button>
       </nav>
     </header>
 
     <!-- ── Location stats panel ── -->
-    <section id="tab-stats" class="panel active">
+    <section id="tab-stats" class="panel">
       <div id="no-selection">
         <p>Click any dot on the map to see outage history for that service location.</p>
         <p class="hint">🔍 Zoom in for more detail — some locations are hidden at low zoom levels.</p>
@@ -112,6 +113,56 @@
       </div>
 
       <div id="calc-out" aria-live="polite"></div>
+    </section>
+
+    <!-- ── About / methodology panel ── -->
+    <section id="tab-about" class="panel about-panel active">
+      <h3>Data Source</h3>
+      <p>Outage records come from Seattle City Light's Outage Management System (OMS). Each row in the source data represents one service location affected by one outage event.</p>
+
+      <h3>What the Map Shows</h3>
+      <p>Each dot is a <strong>service location</strong> (a metered connection). Click any dot to see full statistics for that location across all available data years.</p>
+      <ul>
+        <li><b>Color</b> — annualized hours lost (impact)</li>
+        <li><b>Size</b> — number of outages recorded</li>
+      </ul>
+
+      <h3>How Duration Is Calculated</h3>
+      <p>Duration = <code>restore time − event start</code>, as recorded in the OMS for each service location and event.</p>
+      <p>Where a single event has <em>multiple</em> restore timestamps across locations, locations with anomalous early restores are assigned the latest valid restore time for that event.</p>
+
+      <h3>Filtered &amp; Excluded Data</h3>
+      <p>The following records are excluded from all duration statistics:</p>
+      <table class="about-table">
+        <thead><tr><th>Filter</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Negative duration</td>
+            <td>Restore time precedes event start — OMS placeholder or data entry error. If no valid restore exists for the event, the record is dropped.</td>
+          </tr>
+          <tr>
+            <td>Zero-minute duration</td>
+            <td>Begin and restore logged to the same minute — no measurable outage duration recorded.</td>
+          </tr>
+          <tr>
+            <td>Duration &gt; 7 days</td>
+            <td>OMS events left open for weeks or months. These reflect dispatch ticket lifecycle, not actual customer restoration times. A list of these events has been provided to Seattle City Light for review.</td>
+          </tr>
+          <tr>
+            <td>"Ok on Arrival" cause</td>
+            <td>Crew arrived and found power already restored. The restore time reflects when the crew closed the ticket, not when the customer's power returned.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="about-note">These filters remove records that would otherwise skew duration statistics. Excluded records are not counted toward outage totals or durations.</p>
+
+      <h3>Caveats</h3>
+      <ul>
+        <li>Data reflects OMS records only — brief or unreported outages may be missing.</li>
+        <li>Planned outages are included unless their recorded duration exceeds 7 days.</li>
+        <li>Service location coordinates are approximate.</li>
+        <li>This map is for informational purposes and is not an official SCL product.</li>
+      </ul>
     </section>
   </div>
 
