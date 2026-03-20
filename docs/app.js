@@ -128,6 +128,8 @@ const CONTEXTS = {
     rateLabel:    'Lost income per outage hour',
     rateHint:     '',
     daysPerWeek:  5,   // only weekdays count for WFH
+    foodSafeHrs:  4,   // FDA: closed fridge safe ~4 hrs
+    foodRampHrs:  2,   // loss ramps from safe threshold to full over this many hrs
   },
   restaurant: {
     block1Title:  'Your Restaurant',
@@ -143,6 +145,8 @@ const CONTEXTS = {
     rateLabel:    'Revenue lost per operating hour',
     rateHint:     'Average hourly revenue — varies widely by size',
     daysPerWeek:  7,
+    foodSafeHrs:  2,   // open prep, frequent door access — risk starts sooner
+    foodRampHrs:  2,
   },
   grocery: {
     block1Title:  'Your Store',
@@ -158,6 +162,8 @@ const CONTEXTS = {
     rateLabel:    'Revenue lost per operating hour',
     rateHint:     'Average hourly revenue — varies widely by size',
     daysPerWeek:  7,
+    foodSafeHrs:  1,   // open display cases lose temperature quickly
+    foodRampHrs:  2,
   },
   custom: {
     block1Title:  'Your Location',
@@ -173,6 +179,8 @@ const CONTEXTS = {
     rateLabel:    'Income / revenue lost per hour',
     rateHint:     '',
     daysPerWeek:  7,
+    foodSafeHrs:  4,
+    foodRampHrs:  2,
   },
 };
 
@@ -180,8 +188,10 @@ let currentDaysPerWeek = 5;
 
 function applyContext(key) {
   const ctx = CONTEXTS[key];
-  currentContext    = key;
-  currentDaysPerWeek = ctx.daysPerWeek;
+  currentContext      = key;
+  currentDaysPerWeek  = ctx.daysPerWeek;
+  currentFoodSafeHrs  = ctx.foodSafeHrs;
+  currentFoodRampHrs  = ctx.foodRampHrs;
   document.getElementById('c-block1-title').textContent = ctx.block1Title;
   document.getElementById('c-block2-title').textContent = ctx.block2Title;
   document.getElementById('c-power-hint').textContent   = ctx.powerHint;
@@ -233,9 +243,10 @@ const BACKUP_OPTIONS = {
   ],
 };
 
-let currentContext = 'home';
-
-function updateCalc() {
+let currentContext     = 'home';
+let currentDaysPerWeek = 5;
+let currentFoodSafeHrs = 4;
+let currentFoodRampHrs = 2;function updateCalc() {
   const power  = +document.getElementById('c-power').value || 1.5;
   const food   = +document.getElementById('c-food').value  || 0;
   const wfh    = +document.getElementById('c-wfh').value   || 0;
@@ -245,8 +256,12 @@ function updateCalc() {
 
   const annualHrs  = freq * dur;
   const wfhFrac    = currentDaysPerWeek > 0 ? wfh / currentDaysPerWeek : 0;
-  // Food loss scales linearly up to 4 hrs, then caps (threshold for fridge safety).
-  const foodLoss   = freq * food * Math.min(1, dur / 4);
+  // Food loss: zero below the safe threshold, then ramps to full loss over foodRampHrs.
+  // e.g. home: 0% loss at ≤4 hrs, 100% loss at ≥6 hrs.
+  const foodFrac   = Math.max(0, Math.min(1, (dur - currentFoodSafeHrs) / currentFoodRampHrs));
+  const foodLoss   = freq * food * foodFrac;
+  const foodNote   = currentFoodSafeHrs > 0
+    ? `<small class="hint">Perishables at risk after ~${currentFoodSafeHrs} hrs without power</small>` : '';
   const workLoss   = annualHrs * rate * wfhFrac;
   const annualCost = foodLoss + workLoss;
   const neededKwh  = power * Math.min(dur, 24);
@@ -258,6 +273,7 @@ function updateCalc() {
       <div class="c-row"><span>Expected hours off/year</span><b>${annualHrs.toFixed(1)} hrs</b></div>
       <div class="c-row"><span>Annual outage cost</span>    <b>$${annualCost.toFixed(0)}/yr</b></div>
       <div class="c-row"><span>Capacity needed</span>       <b>${neededKwh.toFixed(1)} kWh</b></div>
+      ${foodNote}
     </div>
     <table class="opt-table" aria-label="Backup power options comparison">
       <thead><tr><th>Option</th><th>Installed</th><th>Payback</th></tr></thead>

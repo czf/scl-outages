@@ -151,6 +151,7 @@ html, body {
 .opt-table td { padding: 6px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
 .warn         { color: #bf360c; font-weight: 600; }
 .disclaimer   { font-size: 11px; color: #888; margin-top: 8px; line-height: 1.5; }
+.hint         { font-size: 11px; color: #666; margin-top: 4px; display: block; }
 
 /* ── Legend ── */
 #legend {
